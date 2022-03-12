@@ -1,0 +1,28 @@
+{
+  "name": "pro-oc-vzp-point-proxy",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Lukáš Drahník <ldrahnik@gmail.com>",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "puppeteer": "^13.5.0",
+    "crypto-js": "^4.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pro-oc/pro-oc-vzp-point-proxy.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pro-oc/pro-oc-vzp-point-proxy/issues"
+  },
+  "homepage": "https://github.com/pro-oc/pro-oc-vzp-point-proxy#readme",
+  "engines": {
+    "node": "14.x"
+  }
+}
