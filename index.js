@@ -41,7 +41,7 @@ async function signIn(browserWSEndpoint) {
     let page = await browser.newPage();
     console.log('new page');
 
-    await page.setViewport({ width: 640, height: 400 });
+    await page.setViewport({ width: 640, height: 480 });
 
     // do not load css/font/image
     await page.setRequestInterception(true);
@@ -94,7 +94,7 @@ async function getVysledekKontroly(browserWSEndpoint, firstName, lastName, dateB
     // 3 mins
     page.setDefaultNavigationTimeout(1000 * 180);
 
-    await page.setViewport({ width: 640, height: 400 });
+    await page.setViewport({ width: 640, height: 480 });
 
     // do not load css/font/image
     await page.setRequestInterception(true);
