@@ -18,3 +18,12 @@
     "zdravotniPojistovna": "201 - Vojenská zdravotní pojišťovna ČR"
 }
 ```
+    
+```
+{
+   "shrnuti": "Zadaným kritériím neodpovídá v Centrálním registru pojištěnců (CRP) žádný pojištěnec.",
+   "cisloPojistence": "",
+   "druhPojisteni": "",
+   "zdravotniPojistovna": ""
+}
+```
