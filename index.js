@@ -110,9 +110,6 @@ async function getVysledekKontroly(browserWSEndpoint, firstName, lastName, dateB
 
     if(page.url() != "https://point.vzp.cz/online/online01") {
 
-        await page.goto('https://auth.vzp.cz/signin');
-        console.log('https://auth.vzp.cz/signin');
-    
         await page.waitForSelector('button[type="submit"]');
     
         const submitButtonElements = await page.$$('button[type="submit"]');
