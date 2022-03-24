@@ -27,3 +27,12 @@
    "zdravotniPojistovna": ""
 }
 ```
+
+```
+{
+   "shrnuti": "Bylo nalezeno více pojištěnců odpovídajících zadaným kritériím. Upřesněte prosím váš požadavek uvedením dalších údajů pojištěnce (jméno, rodné příjmení).",
+   "cisloPojistence": "",
+   "druhPojisteni": "",
+   "zdravotniPojistovna": ""
+}
+```
