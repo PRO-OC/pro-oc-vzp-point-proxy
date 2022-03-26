@@ -75,6 +75,8 @@ async function signIn(browserWSEndpoint) {
         console.log('already signed into vzp point');
     }
 
+    await page.close();
+
     await browser.disconnect();
 
     return;
@@ -168,6 +170,8 @@ async function getVysledekKontroly(browserWSEndpoint, firstName, lastName, dateB
             'zdravotniPojistovna': zdravotniPojistovna ? zdravotniPojistovna.innerHTML : ""
         };
     });
+
+    await page.close();
 
     await browser.disconnect();
 
