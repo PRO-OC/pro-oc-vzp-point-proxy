@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 var express = require('express');
 var app = express();
 var fs = require('fs');
@@ -15,18 +15,28 @@ function encryptBody(body, key) {
 }
 
 async function startBrowser() {
-    const browser = await puppeteer.launch({ 
+    const browser = await puppeteer.launch({
         executablePath: '/usr/bin/google-chrome-stable',
         headless: false,
         args: ['--no-sandbox'], // '--disable-setuid-sandbox' blocks userDataDir
         userDataDir: process.env.USER_DATA_DIR || './userDataDir',
+        ignoreDefaultArgs: ['--disable-extensions']
     });
-    return browser.wsEndpoint();
+    browser.on('disconnected', function() {
+        console.log('disconnected event handler');
+        /*startBrowser().then(function(browserWSEndpoint) {
+            browserWSEndpointGlobal = browserWSEndpoint;
+            console.log('browserWSEndpoint', browserWSEndpoint);
+        });*/
+    });
+    const wsEndpoint = browser.wsEndpoint();
+    browser.disconnect();
+    return wsEndpoint;
 }
 
 async function endBrowser(browserWSEndpoint) {
     const browser = await puppeteer.connect({
-        browserWSEndpoint,
+        browserWSEndpoint: browserWSEndpoint,
     });
     browser.close();
 }
@@ -34,14 +44,14 @@ async function endBrowser(browserWSEndpoint) {
 async function signIn(browserWSEndpoint) {
 
     const browser = await puppeteer.connect({
-        browserWSEndpoint,
+        browserWSEndpoint: browserWSEndpoint,
     });
     console.log('browser');
 
     let page = await browser.newPage();
     console.log('new page');
 
-    await page.setViewport({ width: 640, height: 480 });
+    await page.setViewport({ width: 640, height: 400 });
 
     // do not load css/font/image
     await page.setRequestInterception(true);
@@ -56,10 +66,7 @@ async function signIn(browserWSEndpoint) {
     await page.goto('https://point.vzp.cz/online/online01');
 
     if(page.url() != "https://point.vzp.cz/online/online01") {
-
-        await page.goto('https://auth.vzp.cz/signin');
-        console.log('https://auth.vzp.cz/signin');
-    
+ 
         await page.waitForSelector('button[type="submit"]');
     
         const submitButtonElements = await page.$$('button[type="submit"]');
@@ -86,8 +93,8 @@ async function getVysledekKontroly(browserWSEndpoint, firstName, lastName, dateB
     console.log('getVysledekKontroly', browserWSEndpoint);
 
     browser = await puppeteer.connect({
-        browserWSEndpoint,
-      });
+        browserWSEndpoint: browserWSEndpoint,
+    });
     console.log('browser');
 
     let page = await browser.newPage();
@@ -112,12 +119,15 @@ async function getVysledekKontroly(browserWSEndpoint, firstName, lastName, dateB
 
     if(page.url() != "https://point.vzp.cz/online/online01") {
 
+        await page.goto('https://auth.vzp.cz/signin');
+        console.log('https://auth.vzp.cz/signin');
+
         await page.waitForSelector('button[type="submit"]');
-    
+
         const submitButtonElements = await page.$$('button[type="submit"]');
         console.log('button[type="submit"]');
         submitButtonElements[1].click();
-    
+
         await page.waitForNavigation({
             waitUntil: 'load',
         });
@@ -206,10 +216,33 @@ app.use(function(req, res, next) {
                     throw new TypeError("Invalid arguments", lastName, dateBirth);
                 }
 
-                getVysledekKontroly(browserWSEndpointGlobal, firstName, lastName, dateBirth, until).then(function(Vysledek) {
+                try {
+                    if(!browserWSEndpointGlobal) {
+                        startBrowser().then(function(browserWSEndpoint) {
+
+                            browserWSEndpointGlobal = browserWSEndpoint;
+                            getVysledekKontroly(browserWSEndpointGlobal, firstName, lastName, dateBirth, until).then(function(Vysledek) {
+                                console.log(Vysledek);
+                                resolve(Vysledek);
+                            });
+                        });
+                    } else {
+                        getVysledekKontroly(browserWSEndpointGlobal, firstName, lastName, dateBirth, until).then(function(Vysledek) {
+                            console.log(Vysledek);
+                            resolve(Vysledek);
+                        });
+                    }
+                } catch(err) {
+                    console.log("getVysledekKontroly err", err);
+                    const Vysledek = {
+                        'shrnuti': "",
+                        'cisloPojistence': "",
+                        'druhPojisteni': "",
+                        'zdravotniPojistovna': ""
+                    };
                     console.log(Vysledek);
                     resolve(Vysledek);
-                });
+                }
             }).then(body => {
                 console.log('GET: response sent');
                 var bodyEncrypted = encryptBody(body, encryptionPass);
@@ -238,16 +271,16 @@ app.listen(app.get('port'), function () {
         browserWSEndpointGlobal = browserWSEndpoint;
         console.log('browserWSEndpoint', browserWSEndpoint);
 
-        // Only testing purpose (when is browser closed signing in should persist in userDataDir)
-        /*signIn(browserWSEndpoint).then(function() {
-            endBrowser(browserWSEndpoint).then(function() {
+        signIn(browserWSEndpoint).then(function() {
+            // Only testing purpose (when is browser closed signing in should persist in userDataDir)
+            /*endBrowser(browserWSEndpoint).then(function() {
                 startBrowser().then(function(browserWSEndpoint2) {
                     browserWSEndpointGlobal = browserWSEndpoint2;
                     getVysledekKontroly(browserWSEndpoint2, "Lukáš", "Drahník", "19.5.1994", "9.3.2022", function(res) {
                         console.log(res);
                     });
                 });
-            });
-        });*/
+            });*/
+        });
     });
 });
