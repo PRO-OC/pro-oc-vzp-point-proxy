@@ -2,13 +2,14 @@
 
 ## Použití
 
-- Certifikát umístit do souboru `./cert.pfx` a kód k certifikátu do `./cert.pfx.pass.txt`
+**GET <serverUrl>/online/online01?firstName=&lastName=&dateBirth=&until=**
 
-- Název certifikátu pro `AutoSelectCertificateForUrls` upravit v souboru `googlechromepolicy.json`
-
-- Encryption key pro komunikaci mezi proxy a klientem je potřeba umístit do souboru `./encryptionkey.txt`
-
-**GET <serverUrl>/online/online01?firstName=< Krestni >&lastName=< Prijmeni >&dateBirth=< Datum narození 19.5.1994 např. >&until=< Overeni provest ke dni - 9.3.2022 napr. >**
+```
+firstName=<Krestni>
+lastName=<Prijmeni>
+dateBirth=<Datum narození, 19.5.1994 např.>
+until=<Overeni provest ke dni - 9.3.2022 napr.>
+```
 
 ```
 {
@@ -35,4 +36,41 @@
    "druhPojisteni": "",
    "zdravotniPojistovna": ""
 }
+```
+
+## Build docker image vzp-point
+
+Je nutné zapnout BuildKit v souboru ```/etc/docker/daemon.json``` a restartovat deamona.
+
+```
+{ 
+  "features": { 
+    "buildkit": true 
+  } 
+}
+```
+
+Lokálně se za pomocí secrets z BuildKitu přidá následovně. Při přidávání na serveru v UI je nutné dodržet secret id ```cert``` a typ ```.pem```, id pro cert passphrase ```cert_pass``` v plain text a ```googlechromepolicy``` ve formátu ```json```.
+
+```
+DOCKER_BUILDKIT=1 sudo docker build \
+--secret id=cert,src=./../pro-oc-vfn-secrets/cert.pem \
+--secret id=cert_pass,src=./../pro-oc-vfn-secrets/certpassphrase.txt \
+--secret id=googlechromepolicy,src=./../pro-oc-vfn-secrets/googlechromepolicy.json \
+-t vzp-point . --progress=plain
+```
+
+## Spuštění docker image vzp-point
+
+Env proměnné lokálně vkládané např. z jiného git repozitáře:
+
+1) **(required)** ```ENCRYPT_KEY```
+2) **(optional)** ```PORT``` (default 3000)
+
+```
+export ENCRYPT_KEY=$(cat ../pro-oc-vfn-secrets/encryptionkey.txt)
+
+sudo docker run --network host -it \
+-e ENCRYPT_KEY="${ENCRYPT_KEY}" \
+vzp-point
 ```

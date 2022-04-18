@@ -1,10 +1,9 @@
 const puppeteer = require('puppeteer-core');
 var express = require('express');
 var app = express();
-var fs = require('fs');
 var CryptoJS = require("crypto-js");
 
-var encryptionPass = fs.readFileSync('encryptionkey.txt', 'utf8'); 
+var encryptKey = process.env.ENCRYPT_KEY;
 
 var browserWSEndpointGlobal = null;
 
@@ -245,7 +244,7 @@ app.use(function(req, res, next) {
                 }
             }).then(body => {
                 console.log('GET: response sent');
-                var bodyEncrypted = encryptBody(body, encryptionPass);
+                var bodyEncrypted = encryptBody(body, encryptKey);
                 res.send(bodyEncrypted);
             }).catch(error => {
                 console.error(error);

@@ -1,6 +1,5 @@
+# syntax = docker/dockerfile:1.0-experimental
 FROM node:14
-
-RUN mkdir -p /app
 
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
@@ -9,26 +8,16 @@ RUN apt-get update && apt-get install -yq gconf-service libasound2 libatk1.0-0 l
 RUN apt-get install -yq google-chrome-stable
 RUN apt-get install -yq libnss3-tools
 
-RUN mkdir -p /etc/opt/chrome/policies/managed
-COPY googlechromepolicy.json /etc/opt/chrome/policies/managed/
+RUN mkdir -p /etc/opt/chrome/policies/managed/
+RUN --mount=type=secret,id=googlechromepolicy,dst=googlechromepolicy.json cp googlechromepolicy.json /etc/opt/chrome/policies/managed/
 
-RUN useradd -m app
-RUN chown app:app /app
-USER app
-
-COPY cert.pfx /tmp/
-COPY certpfxpass.txt /tmp/
 RUN mkdir -p $HOME/.pki/nssdb
-RUN pk12util -d sql:$HOME/.pki/nssdb -i /tmp/cert.pfx -w /tmp/certpfxpass.txt
+RUN --mount=type=secret,id=cert,dst=cert.pem --mount=type=secret,id=cert_pass,dst=certpass.txt openssl pkcs12 -inkey cert.pem -in cert.pem -export -out cert.pfx -password pass:$(cat certpass.txt) -passin pass:$(cat certpass.txt) && pk12util -d sql:$HOME/.pki/nssdb -i cert.pfx -w certpass.txt
 
-WORKDIR /app 
+COPY . .
 
-COPY package.json /app
+RUN npm install
 
-RUN npm install 
-
-COPY . /app
-
-EXPOSE 3000
+EXPOSE ${PORT}
 
 CMD xvfb-run --server-args="-screen 0 640x480x24" -a npm start
