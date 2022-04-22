@@ -89,102 +89,110 @@ async function signIn(browserWSEndpoint) {
 }
 
 async function getVysledekKontroly(browserWSEndpoint, firstName, lastName, dateBirth, until) {
-    console.log('getVysledekKontroly', browserWSEndpoint);
+    try {
+        console.log('getVysledekKontroly', browserWSEndpoint);
 
-    browser = await puppeteer.connect({
-        browserWSEndpoint: browserWSEndpoint,
-    });
-    console.log('browser');
+        browser = await puppeteer.connect({
+            browserWSEndpoint: browserWSEndpoint,
+        });
+        console.log('browser');
 
-    let page = await browser.newPage();
-    console.log('new page');
+        let page = await browser.newPage();
+        console.log('new page');
 
-    // 3 mins
-    page.setDefaultNavigationTimeout(1000 * 180);
+        // 3 mins
+        page.setDefaultNavigationTimeout(1000 * 180);
 
-    await page.setViewport({ width: 640, height: 480 });
+        await page.setViewport({ width: 640, height: 480 });
 
-    // do not load css/font/image
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-        if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image') {
-            req.abort();
-        } else {
-            req.continue();
-        }
-    });
-
-    await page.goto('https://point.vzp.cz/online/online01');
-
-    if(page.url() != "https://point.vzp.cz/online/online01") {
-
-        await page.goto('https://auth.vzp.cz/signin');
-        console.log('https://auth.vzp.cz/signin');
-
-        await page.waitForSelector('button[type="submit"]');
-
-        const submitButtonElements = await page.$$('button[type="submit"]');
-        console.log('button[type="submit"]');
-        submitButtonElements[1].click();
-
-        await page.waitForNavigation({
-            waitUntil: 'load',
+        // do not load css/font/image
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+            if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image') {
+                req.abort();
+            } else {
+                req.continue();
+            }
         });
 
         await page.goto('https://point.vzp.cz/online/online01');
 
-        console.log('signed into vzp point');
-    } else {
-        console.log('already signed into vzp point');
-    }
+        if(page.url() != "https://point.vzp.cz/online/online01") {
 
-    console.log('https://point.vzp.cz/online/online01');
+            await page.goto('https://auth.vzp.cz/signin');
+            console.log('https://auth.vzp.cz/signin');
 
-    await page.waitForSelector("#mode_search");
+            await page.waitForSelector('button[type="submit"]');
 
-    await page.evaluate(() => {
-        let radio = document.querySelector('#mode_search');
-        radio.click();
-    });
+            const submitButtonElements = await page.$$('button[type="submit"]');
+            console.log('button[type="submit"]');
+            submitButtonElements[1].click();
 
-    if(until) {
-        await page.waitForSelector("#Until");
-        await page.evaluate((until) => {
-            var untilElement = document.getElementById("Until");
-            untilElement.value = until;
-        }, until);
-    }
+            await page.waitForNavigation({
+                waitUntil: 'load',
+            });
 
-    await page.waitForSelector("#Search_FirstName");
+            await page.goto('https://point.vzp.cz/online/online01');
 
-    await page.type('input[name="Search.FirstName"]', firstName);
-    await page.type('input[name="Search.LastName"]', lastName);
-    await page.type('input[name="Search.BirthDate"]', dateBirth);
+            console.log('signed into vzp point');
+        } else {
+            console.log('already signed into vzp point');
+        }
 
-    const searchForm = await page.$('#form0');
-    await searchForm.evaluate(searchForm => searchForm.submit());
+        console.log('https://point.vzp.cz/online/online01');
 
-    await page.waitForSelector('.well');
-    const Vysledek = await page.evaluate(() => {
+        await page.waitForSelector("#mode_search");
 
-        const shrnuti = document.querySelector('.col-md-12 span');
-        const cisloPojistence = document.querySelector('.col-md-3 p .text-strong');
-        const druhPojisteni = document.querySelector('.col-md-4 p .text-strong');
-        const zdravotniPojistovna = document.querySelector('.col-md-5 p .text-strong');
+        await page.evaluate(() => {
+            let radio = document.querySelector('#mode_search');
+            radio.click();
+        });
 
+        if(until) {
+            await page.waitForSelector("#Until");
+            await page.evaluate((until) => {
+                var untilElement = document.getElementById("Until");
+                untilElement.value = until;
+            }, until);
+        }
+
+        await page.waitForSelector("#Search_FirstName");
+
+        await page.type('input[name="Search.FirstName"]', firstName);
+        await page.type('input[name="Search.LastName"]', lastName);
+        await page.type('input[name="Search.BirthDate"]', dateBirth);
+
+        const searchForm = await page.$('#form0');
+        await searchForm.evaluate(searchForm => searchForm.submit());
+
+        await page.waitForSelector('.well', { timeout: 5000} );
+        const Vysledek = await page.evaluate(() => {
+
+            const shrnuti = document.querySelector('.col-md-12 span');
+            const cisloPojistence = document.querySelector('.col-md-3 p .text-strong');
+            const druhPojisteni = document.querySelector('.col-md-4 p .text-strong');
+            const zdravotniPojistovna = document.querySelector('.col-md-5 p .text-strong');
+
+            return {
+                'shrnuti': shrnuti ? shrnuti.innerHTML : "",
+                'cisloPojistence': cisloPojistence ? cisloPojistence.innerHTML : "",
+                'druhPojisteni': druhPojisteni ? druhPojisteni.innerHTML : "",
+                'zdravotniPojistovna': zdravotniPojistovna ? zdravotniPojistovna.innerHTML : ""
+            };
+        });
+        
+        await page.close();
+        await browser.disconnect();
+
+        return Vysledek;
+    } catch (err) {
         return {
-            'shrnuti': shrnuti ? shrnuti.innerHTML : "",
-            'cisloPojistence': cisloPojistence ? cisloPojistence.innerHTML : "",
-            'druhPojisteni': druhPojisteni ? druhPojisteni.innerHTML : "",
-            'zdravotniPojistovna': zdravotniPojistovna ? zdravotniPojistovna.innerHTML : ""
+            'shrnuti': "",
+            'cisloPojistence': "",
+            'druhPojisteni': "",
+            'zdravotniPojistovna': ""
         };
-    });
-
-    await page.close();
-
-    await browser.disconnect();
-
-    return Vysledek;
+    }
 }
 
 app.use(function(req, res, next) {
@@ -203,7 +211,7 @@ app.use(function(req, res, next) {
         if(req.baseUrl + req.path == "/online/online01") {
             return new Promise(resolve => {
 
-                const firstName = req.query.firstName;
+                const firstName = req.query.firstName.length < 2 ? "" : req.query.firstName.length;
                 const lastName = req.query.lastName;
                 const dateBirth = req.query.dateBirth;
                 const until = req.query.until;
