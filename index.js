@@ -211,7 +211,7 @@ app.use(function(req, res, next) {
         if(req.baseUrl + req.path == "/online/online01") {
             return new Promise(resolve => {
 
-                const firstName = req.query.firstName.length < 2 ? "" : req.query.firstName.length;
+                const firstName = req.query.firstName.length < 2 ? "" : req.query.firstName;
                 const lastName = req.query.lastName;
                 const dateBirth = req.query.dateBirth;
                 const until = req.query.until;
