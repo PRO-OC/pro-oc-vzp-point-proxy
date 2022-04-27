@@ -19,6 +19,16 @@ until=<Overeni provest ke dni - 9.3.2022 napr.>
     "zdravotniPojistovna": "201 - Vojenská zdravotní pojišťovna ČR"
 }
 ```
+   
+
+```
+{
+    "shrnuti": "\n                        Pojištěnec <strong>má ke dni 09.03.2022 platné pojištění</strong> a je v Centrálním registru pojištěnců (CRP) evidován s následujícími údaji:\n                    ",
+    "cisloPojistence": "940519xxxx",
+    "druhPojisteni": "Mezistátní smlouvy",
+    "zdravotniPojistovna": "111 - Všeobecná zdravotní pojišťovna ČR"
+}
+```
     
 ```
 {
