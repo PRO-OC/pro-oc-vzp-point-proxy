@@ -1,6 +1,6 @@
 {
   "name": "pro-oc-vzp-point-proxy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "author": "Lukáš Drahník <ldrahnik@gmail.com>",
   "main": "index.js",
