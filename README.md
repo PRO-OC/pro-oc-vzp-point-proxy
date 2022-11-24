@@ -70,7 +70,7 @@ DOCKER_BUILDKIT=1 sudo docker build \
 -t vzp-point . --progress=plain
 ```
 
-## Spuštění docker image vzp-point
+## Jak spustit docker image lokálně
 
 Env proměnné lokálně vkládané např. z jiného git repozitáře:
 
@@ -84,3 +84,9 @@ sudo docker run --network host -it \
 -e ENCRYPT_KEY="${ENCRYPT_KEY}" \
 vzp-point
 ```
+
+## Jak spustit docker image na render.com
+
+1) Disk `/userDataDir`
+2) Environment `ENCRYPT_KEY`, `PORT`
+3) Secret files `cert`, `cert_pass`, `googlechromepolicy`
