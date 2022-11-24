@@ -6,8 +6,8 @@
   "main": "index.js",
   "dependencies": {
     "crypto-js": "^4.1.1",
-    "express": "^4.17.1",
-    "puppeteer-core": "^13.5.2"
+    "express": "^4.18.1",
+    "puppeteer": "^19.2.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

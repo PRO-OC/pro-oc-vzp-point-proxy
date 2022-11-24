@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 var express = require('express');
 var app = express();
 var CryptoJS = require("crypto-js");
@@ -14,13 +14,17 @@ function encryptBody(body, key) {
 }
 
 async function startBrowser() {
+    console.log('browser will be launched');
     const browser = await puppeteer.launch({
-        executablePath: '/usr/bin/google-chrome-stable',
+        //executablePath: '/usr/bin/google-chrome',
+        //executablePath: '/usr/bin/google-chrome-stable',
+        //executablePath: '/usr/bin/chromium-browser',
         headless: false,
         args: ['--no-sandbox'], // '--disable-setuid-sandbox' blocks userDataDir
         userDataDir: process.env.USER_DATA_DIR || './userDataDir',
         ignoreDefaultArgs: ['--disable-extensions']
     });
+    console.log('browser launched');
     browser.on('disconnected', function() {
         console.log('disconnected event handler');
         /*startBrowser().then(function(browserWSEndpoint) {
@@ -49,6 +53,9 @@ async function signIn(browserWSEndpoint) {
 
     let page = await browser.newPage();
     console.log('new page');
+
+    const version = await page.browser().version();
+    console.log(version);
 
     await page.setViewport({ width: 640, height: 400 });
 
